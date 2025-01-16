@@ -1,0 +1,75 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+h1 {
+    color: #333;
+    text-align: center;
+}
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 5px;
+}
+.cell {
+    width: 100px;
+    height: 100px;
+    background-color: #fff;
+    border: 2px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2em;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.cell:hover {
+    background-color: #e6e6e6;
+}
+.player-info {
+    display: flex;
+    justify-content: space-around;
+    width: 300px;
+    margin-top: 20px;
+    font-size: 1.2em;
+}
+.player {
+    padding: 10px;
+    background-color: #ccc;
+    border-radius: 5px;
+}
+.player-1 {
+    background-color: #add8e6;
+}
+.player-2 {
+    background-color: #f4b4b4;
+}
+.turn-indicator {
+    margin-top: 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+.player-turn {
+    font-size: 1.5em;
+    color: #333;
+}
+.player-turn.player-1 {
+    color: #1e90ff; /* Blue for Player 1 */
+}
+.player-turn.player-2 {
+    color: #ff6347; /* Red for Player 2 */
+}
