@@ -1,67 +1,87 @@
-const board = document.querySelector(".board");
-const cells = document.querySelectorAll(".cell");
-const turnIndicator = document.querySelector(".player-turn");
-const player1Info = document.querySelector(".player-1");
-const player2Info = document.querySelector(".player-2");
+let myPlayer = null; // The role assigned to this player ("X" or "O")
+let currentPlayer = null; // The current player's turn ("X" or "O")
+let gameBoard = Array(9).fill(""); // Represents the Tic-Tac-Toe board
+let gameOver = false; // Tracks if the game is over
 
-let currentPlayer = 'X'; // Player 1 starts
-let gameBoard = ['', '', '', '', '', '', '', '', '']; // Game state tracking
+// Select the turn indicator element
+const turnIndicator = document.getElementById("turn-indicator");
 
-// WebSocket connection for multiplayer
-const ws = new WebSocket("ws://localhost:8080"); // Update with your server's URL
+// WebSocket setup
+const ws = new WebSocket("ws://localhost:8080");
 
-// Handle incoming messages
-ws.onmessage = function(event) {
+ws.onopen = () => {
+    console.log("Connected to the server.");
+};
+
+ws.onmessage = (event) => {
     const data = JSON.parse(event.data);
+
+    if (data.error) {
+        alert(data.error);
+        return;
+    }
+
+    // Assign the player's role if not already assigned
+    if (data.player && myPlayer === null) {
+        myPlayer = data.player;
+        alert(`You are player ${myPlayer}`);
+    }
+
+    // Update the game board
     if (data.board) {
         gameBoard = data.board;
         renderBoard();
     }
+
+    // Update the current turn
     if (data.turn) {
         currentPlayer = data.turn;
         updateTurnIndicator();
+    }
 };
 
-// Render the board state
+// Render the board
 function renderBoard() {
-    gameBoard.forEach((cell, index) => {
-        cells[index].textContent = cell;
-        if (cell === 'X') {
-            cells[index].style.color = "#1e90ff"; // Blue for Player 1
-        } else if (cell === 'O') {
-            cells[index].style.color = "#ff6347"; // Red for Player 2
-        } else {
-            cells[index].style.color = "#000000"; // Default color for empty
-        }
+    const cells = document.querySelectorAll(".cell");
+    cells.forEach((cell, index) => {
+        cell.textContent = gameBoard[index];
     });
 }
-
-// Handle cell click (player move)
-cells.forEach(cell => {
-    cell.addEventListener("click", () => {
-        const index = cell.dataset.index;
-        if (!gameBoard[index]) {
-            gameBoard[index] = currentPlayer;
-            ws.send(JSON.stringify({ board: gameBoard, turn: currentPlayer === 'X' ? 'O' : 'X' }));
-            renderBoard();
-        }
-    });
-});
 
 // Update the turn indicator
 function updateTurnIndicator() {
-    if (currentPlayer === 'X') {
-        turnIndicator.textContent = "Player 1's turn";
-        turnIndicator.classList.add('player-1');
-        turnIndicator.classList.remove('player-2');
+    if (gameOver) {
+        turnIndicator.textContent = "Game Over!";
+        return;
+    }
+    if (currentPlayer === myPlayer) {
+        turnIndicator.textContent = "Your turn!";
     } else {
-        turnIndicator.textContent = "Player 2's turn";
-        turnIndicator.classList.add('player-2');
-        turnIndicator.classList.remove('player-1');
+        turnIndicator.textContent = `Waiting for ${currentPlayer}'s turn...`;
     }
 }
 
-// Initial rendering
-renderBoard();
-updateTurnIndicator();
+// Add click event listeners to the cells
+function initializeBoard() {
+    const cells = document.querySelectorAll(".cell");
+    cells.forEach((cell, index) => {
+        cell.addEventListener("click", () => {
+            // Check if it's the player's turn and if the game is ongoing
+            if (gameOver || currentPlayer !== myPlayer || gameBoard[index]) return;
+
+            // Make the move
+            gameBoard[index] = myPlayer;
+
+            // Send the move to the server
+            ws.send(JSON.stringify({
+                board: gameBoard,
+                player: myPlayer,
+            }));
+
+            renderBoard();
+        });
+    });
 }
+
+// Call the function to initialize the board
+initializeBoard();
